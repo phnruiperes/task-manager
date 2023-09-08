@@ -14,7 +14,7 @@ const User = new mongoose.model("User", {
         lowercase: true,
         validate(value){
             if (!validator.isEmail(value)){
-                throw new Error("Email is not vali d")
+                throw new Error("Email is not valid")
             }
         }
     },
@@ -23,7 +23,7 @@ const User = new mongoose.model("User", {
         default: 0,
         validate(value){
             if(value < 0){
-                throw new Error("Age can't be negative.")
+                throw new Error("Age can't be negative")
             }
         }
     },
