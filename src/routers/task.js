@@ -14,6 +14,7 @@ router.post('/tasks', async (req, res) => {
         res.status(400).send(e)
     }
 })
+
 // Get Tasks
 router.get('/tasks', async (req, res) => {
 
@@ -24,20 +25,21 @@ router.get('/tasks', async (req, res) => {
         res.status(500).send()
     }
 })
+
 // Get Task by Id
 router.get('/tasks/:id', async (req, res) => {
 
     try {
         task = await Task.findById(req.params.id)
         if (!task) {
-            res.status(404).send("404: Task not found")
-        } else {
-            res.status(200).send(task)
+            return res.status(404).send("404: Task not found")
         }
+        res.status(200).send(task)
     } catch (e) {
         res.status(500).send()
     }
 })
+
 // Update Task
 router.patch('/tasks/:id', async (req, res) => {
     const updates = Object.keys(req.body)
@@ -49,16 +51,20 @@ router.patch('/tasks/:id', async (req, res) => {
     }
 
     try {
-        task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+        task = await Task.findById(req.params.id)
         if (!task) {
             return res.status(404).send("404: Task not found")
         }
-        res.status(200).send(task)
+        
+        updates.forEach((update) => task[update] = req.body[update])
+        await task.save()
 
+        res.status(200).send(task)
     } catch (e) {
         res.status(400).send(e)
     }
 })
+
 // Delete Task
 router.delete('/tasks/:id',async (req,res)=>{
     try{

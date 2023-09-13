@@ -14,6 +14,7 @@ router.post('/users', async (req, res) => {
         res.status(400).send(e)
     }
 })
+
 // Get Users
 router.get('/users', async (req, res) => {
 
@@ -24,6 +25,7 @@ router.get('/users', async (req, res) => {
         res.status(500).send()
     }
 })
+
 // Get User by Id
 router.get('/users/:id', async (req, res) => {
 
@@ -37,6 +39,7 @@ router.get('/users/:id', async (req, res) => {
         res.status(500).send()
     }
 })
+
 // Update User
 router.patch('/users/:id', async (req, res) => {
     const updates = Object.keys(req.body)
@@ -48,15 +51,20 @@ router.patch('/users/:id', async (req, res) => {
     }
     
     try {
-        user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+        user = await User.findById(req.params.id)
         if (!user) {
             return res.status(404).send("404: User not found")
         }
+        
+        updates.forEach((update) => user[update] = req.body[update])
+        await user.save()
+        
         res.status(200).send(user)
     } catch (e) {
         res.status(400).send(e)
     }
 })
+
 // Delete User
 router.delete('/users/:id',async (req,res)=>{
     try{
