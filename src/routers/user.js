@@ -1,5 +1,6 @@
 const express = require('express')
 const User = require('../models/user.js')
+const auth = require('../middleware/auth.js')
 
 const router = new express.Router()
 
@@ -8,19 +9,30 @@ router.post('/users', async (req, res) => {
     const user = new User(req.body)
 
     try {
+        const token = await user.generateAuthToken()
         await user.save()
-        res.status(201).send(user)
+        res.status(201).send({user,token})
     } catch (e) {
         res.status(400).send(e)
     }
 })
 
-// Get Users
-router.get('/users', async (req, res) => {
+// User Login
+router.post('/users/login', async (req, res) => {
+    try {
+        user = await User.findByCredentials(req.body.email, req.body.password)
+        const token = await user.generateAuthToken()
+        res.send({user,token})
+    } catch (e) {
+        res.status(400).send(e)
+    }
+})
+
+// Get Current User
+router.get('/users/me',auth, async (req, res) => {
 
     try {
-        users = await User.find({})
-        res.status(200).send(users)
+        res.status(200).send(req.user)
     } catch (e) {
         res.status(500).send()
     }
@@ -49,16 +61,16 @@ router.patch('/users/:id', async (req, res) => {
     if (!valid) {
         return res.status(400).send({ error: "Invalid updates" })
     }
-    
+
     try {
         user = await User.findById(req.params.id)
         if (!user) {
             return res.status(404).send("404: User not found")
         }
-        
+
         updates.forEach((update) => user[update] = req.body[update])
         await user.save()
-        
+
         res.status(200).send(user)
     } catch (e) {
         res.status(400).send(e)
@@ -66,14 +78,14 @@ router.patch('/users/:id', async (req, res) => {
 })
 
 // Delete User
-router.delete('/users/:id',async (req,res)=>{
-    try{
+router.delete('/users/:id', async (req, res) => {
+    try {
         user = await User.findByIdAndDelete(req.params.id)
-        if(!user){
+        if (!user) {
             return res.status(404).send()
         }
         res.send(user)
-    }catch(e){
+    } catch (e) {
         res.status(500).send()
     }
 })
